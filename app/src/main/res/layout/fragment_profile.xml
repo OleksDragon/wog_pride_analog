@@ -1,10 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <TextView
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/background_gradient"
+    android:gravity="center">
+
+    <!-- Емблема PRIDE з піктограмою локації -->
+    <LinearLayout
+        android:id="@+id/pride_logo_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Profile Fragment"
-        android:layout_gravity="center"/>
-</FrameLayout>
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_location"
+            android:contentDescription="Location Icon"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PRIDE"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="4dp"/>
+    </LinearLayout>
+
+    <!-- Макет для неавторизованих користувачів -->
+    <LinearLayout
+        android:id="@+id/unauthenticated_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Увійти"
+            android:backgroundTint="@color/white_button"
+            android:textColor="#17a117"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/register_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Зареєструватися"
+            android:backgroundTint="@color/white_button"
+            android:textColor="#17a117"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+    </LinearLayout>
+
+    <!-- Макет для авторизованих користувачів -->
+    <LinearLayout
+        android:id="@+id/authenticated_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Старий TextView, який ми приховуємо -->
+        <TextView
+            android:id="@+id/user_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Інформація про користувача"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

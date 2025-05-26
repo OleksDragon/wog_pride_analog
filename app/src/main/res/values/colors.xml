@@ -5,4 +5,6 @@
     <color name="background_green">#1EDC1E</color>
     <color name="block_green">#AEDBAE</color>
     <color name="text_white">#FFFFFF</color>
+    <color name="green_button">#4CAF50</color>
+    <color name="white_button">#FFFFFF</color>
 </resources>

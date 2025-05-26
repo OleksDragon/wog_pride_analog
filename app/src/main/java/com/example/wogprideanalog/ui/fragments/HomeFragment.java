@@ -1,5 +1,6 @@
 package com.example.wogprideanalog.ui.fragments;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,11 +16,14 @@ import com.example.wogprideanalog.R;
 import com.example.wogprideanalog.ui.viewmodel.FuelViewModel;
 import com.example.wogprideanalog.utils.QrCodeGenerator;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class HomeFragment extends Fragment {
 
     private FuelViewModel fuelViewModel;
     private ImageView qrCodeImageView;
     private TextView balanceTextView, fuelIndicator, coffeeIndicator;
+    private SharedPreferences sharedPreferences;
 
     @Nullable
     @Override
@@ -27,6 +31,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         fuelViewModel = new ViewModelProvider(this).get(FuelViewModel.class);
+        sharedPreferences = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
 
         balanceTextView = view.findViewById(R.id.balance_text_view);
         fuelIndicator = view.findViewById(R.id.fuel_indicator);
@@ -49,7 +54,8 @@ public class HomeFragment extends Fragment {
             coffeeIndicator.setText(coffee != null ? coffee + " чашок" : "0 чашок");
         });
 
-        String cardId = "USER123";
+        // Генерація QR-коду
+        String cardId = sharedPreferences.getString("userEmail", "USER123");
         Bitmap qrCode = QrCodeGenerator.generateQrCode(cardId);
         if (qrCode != null) {
             qrCodeImageView.setImageBitmap(qrCode);
@@ -58,11 +64,9 @@ public class HomeFragment extends Fragment {
                 QrInfoDialogFragment dialog = QrInfoDialogFragment.newInstance(qrCode);
                 dialog.show(getParentFragmentManager(), "qr_info_dialog");
             });
-
         } else {
             qrCodeImageView.setImageResource(android.R.drawable.ic_dialog_alert);
         }
-
 
         return view;
     }
