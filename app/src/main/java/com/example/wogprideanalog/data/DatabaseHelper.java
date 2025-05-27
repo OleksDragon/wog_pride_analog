@@ -5,16 +5,22 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import com.example.wogprideanalog.data.model.User;
+import android.view.SurfaceControl;
 
+import com.example.wogprideanalog.data.model.User;
+import com.example.wogprideanalog.data.model.Transaction;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "WogPride.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     public static final String TABLE_USERS = "users";
     private static final String TABLE_ITEMS = "items";
+    private static final String TABLE_TRANSACTIONS = "transactions";
 
     private static final String COLUMN_EMAIL = "email";
     private static final String COLUMN_PASSWORD = "password";
@@ -26,6 +32,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CATEGORY = "category";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_PRICE = "price";
+
+    private static final String COLUMN_TRANSACTION_ID = "transaction_id";
+    private static final String COLUMN_USER_EMAIL = "user_email";
+    private static final String COLUMN_TYPE = "type"; // "fuel" або "coffee"
+    private static final String COLUMN_ITEM_NAME = "item_name";
+    private static final String COLUMN_QUANTITY = "quantity";
+    private static final String COLUMN_TOTAL_COST = "total_cost";
+    private static final String COLUMN_DATE = "date";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,6 +62,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_PRICE + " INTEGER NOT NULL)";
         db.execSQL(createItemsTable);
 
+        String createTransactionsTable = "CREATE TABLE " + TABLE_TRANSACTIONS + " (" +
+                COLUMN_TRANSACTION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_EMAIL + " TEXT NOT NULL, " +
+                COLUMN_TYPE + " TEXT NOT NULL, " +
+                COLUMN_ITEM_NAME + " TEXT NOT NULL, " +
+                COLUMN_QUANTITY + " INTEGER NOT NULL, " +
+                COLUMN_TOTAL_COST + " INTEGER NOT NULL, " +
+                COLUMN_DATE + " TEXT NOT NULL, " +
+                "FOREIGN KEY(" + COLUMN_USER_EMAIL + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_EMAIL + "))";
+        db.execSQL(createTransactionsTable);
+
         initializeDefaultItems(db);
     }
 
@@ -62,6 +87,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_PRICE + " INTEGER NOT NULL)";
             db.execSQL(createItemsTable);
             initializeDefaultItems(db);
+        }
+        if (oldVersion < 3) {
+            String createTransactionsTable = "CREATE TABLE " + TABLE_TRANSACTIONS + " (" +
+                    COLUMN_TRANSACTION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_USER_EMAIL + " TEXT NOT NULL, " +
+                    COLUMN_TYPE + " TEXT NOT NULL, " +
+                    COLUMN_ITEM_NAME + " TEXT NOT NULL, " +
+                    COLUMN_QUANTITY + " INTEGER NOT NULL, " +
+                    COLUMN_TOTAL_COST + " INTEGER NOT NULL, " +
+                    COLUMN_DATE + " TEXT NOT NULL, " +
+                    "FOREIGN KEY(" + COLUMN_USER_EMAIL + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_EMAIL + "))";
+            db.execSQL(createTransactionsTable);
         }
     }
 
@@ -164,5 +201,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{user.email, user.password});
         db.close();
         return rowsAffected;
+    }
+
+    // Метод для додавання транзакції
+    public void addTransaction(String userEmail, String type, String itemName, int quantity, int totalCost, String date) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_EMAIL, userEmail);
+        values.put(COLUMN_TYPE, type);
+        values.put(COLUMN_ITEM_NAME, itemName);
+        values.put(COLUMN_QUANTITY, quantity);
+        values.put(COLUMN_TOTAL_COST, totalCost);
+        values.put(COLUMN_DATE, date);
+        db.insert(TABLE_TRANSACTIONS, null, values);
+        db.close();
+    }
+
+    // Метод для получения всех транзакций пользователя
+    public List<Transaction> getUserTransactions(String userEmail) {
+        List<Transaction> transactions = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_TRANSACTIONS,
+                new String[]{
+                        COLUMN_USER_EMAIL,
+                        COLUMN_TYPE,
+                        COLUMN_ITEM_NAME,
+                        COLUMN_QUANTITY,
+                        COLUMN_TOTAL_COST,
+                        COLUMN_DATE
+                },
+                COLUMN_USER_EMAIL + "=?",
+                new String[]{userEmail},
+                null,
+                null,
+                COLUMN_DATE + " DESC"
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                Transaction transaction = new Transaction(
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ITEM_NAME)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_QUANTITY)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TOTAL_COST)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE))
+                );
+                transactions.add(transaction);
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+        return transactions;
     }
 }

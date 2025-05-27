@@ -22,7 +22,11 @@ import com.example.wogprideanalog.data.DatabaseHelper;
 import com.example.wogprideanalog.data.StoreConfig;
 import com.example.wogprideanalog.data.model.User;
 import com.example.wogprideanalog.ui.viewmodel.FuelViewModel;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -174,6 +178,11 @@ public class StoreFragment extends Fragment {
         user.accountBalance -= totalCost;
         user.fuelAmount += quantity;
 
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                .format(new Date());
+
+        dbHelper.addTransaction(email, "fuel", fuelType, quantity, totalCost, date);
+
         updateUserInDatabase(user);
         fuelViewModel.refreshData();
         Toast.makeText(getContext(), "Куплено " + quantity + " л " + fuelType + " за " + totalCost + " ₴", Toast.LENGTH_SHORT).show();
@@ -217,6 +226,11 @@ public class StoreFragment extends Fragment {
 
         user.accountBalance -= totalCost;
         user.coffeeCups += quantity;
+
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                .format(new Date());
+
+        dbHelper.addTransaction(email, "coffee", coffeeType, quantity, totalCost, date);
 
         updateUserInDatabase(user);
         fuelViewModel.refreshData();

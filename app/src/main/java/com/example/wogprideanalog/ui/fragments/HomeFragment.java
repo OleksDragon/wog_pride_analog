@@ -3,15 +3,22 @@ package com.example.wogprideanalog.ui.fragments;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager2.widget.ViewPager2;
+
 import com.example.wogprideanalog.R;
 import com.example.wogprideanalog.ui.viewmodel.FuelViewModel;
 import com.example.wogprideanalog.utils.QrCodeGenerator;
@@ -24,6 +31,7 @@ public class HomeFragment extends Fragment {
     private ImageView qrCodeImageView;
     private TextView balanceTextView, fuelIndicator, coffeeIndicator;
     private SharedPreferences sharedPreferences;
+    private ViewPager2 viewPager;
 
     @Nullable
     @Override
@@ -37,6 +45,9 @@ public class HomeFragment extends Fragment {
         fuelIndicator = view.findViewById(R.id.fuel_indicator);
         coffeeIndicator = view.findViewById(R.id.coffee_indicator);
         qrCodeImageView = view.findViewById(R.id.qr_code_image_view);
+        ImageButton walletButton = view.findViewById(R.id.wallet_button);
+
+        viewPager = requireActivity().findViewById(R.id.view_pager);
 
         if (balanceTextView == null || fuelIndicator == null || coffeeIndicator == null || qrCodeImageView == null) {
             throw new IllegalStateException("One or more views are null");
@@ -65,6 +76,21 @@ public class HomeFragment extends Fragment {
         } else {
             qrCodeImageView.setImageResource(android.R.drawable.ic_dialog_alert);
         }
+
+        walletButton.setOnClickListener(v -> {
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            if (!isLoggedIn) {
+                Toast.makeText(getContext(), "Будь ласка, увійдіть, щоб переглянути історію транзакцій", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Log.d("HomeFragment", "Открываем TransactionHistoryFragment");
+            TransactionHistoryFragment transactionHistoryFragment = new TransactionHistoryFragment();
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.overlay_fragment_container, transactionHistoryFragment);
+            transaction.addToBackStack(null); // Добавляем в стек, чтобы можно было вернуться назад
+            transaction.commit();
+        });
 
         return view;
     }
