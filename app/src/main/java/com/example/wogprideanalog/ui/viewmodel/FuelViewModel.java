@@ -28,32 +28,29 @@ public class FuelViewModel extends AndroidViewModel {
     }
 
     private void loadUserData() {
-        // Перевіряємо, чи користувач авторизований
         boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
         if (!isLoggedIn) {
-            // Якщо користувач не авторизований, встановлюємо значення за замовчуванням
-            balance.setValue(240);
-            fuelAmount.setValue(40);
-            coffeeAmount.setValue(2);
-            return;
-        }
-
-        // Отримуємо email і пароль користувача
-        String email = sharedPreferences.getString("userEmail", "");
-        String password = sharedPreferences.getString("userPassword", "");
-
-        // Отримуємо дані користувача з бази даних
-        User user = dbHelper.getUser(email, password);
-        if (user != null) {
-            balance.setValue(user.accountBalance);
-            fuelAmount.setValue(user.fuelAmount);
-            coffeeAmount.setValue(user.coffeeCups);
+            balance.setValue(500);
+            fuelAmount.setValue(25);
+            coffeeAmount.setValue(3);
         } else {
-            // Якщо користувача не знайдено, встановлюємо значення за замовчуванням
-            balance.setValue(0);
-            fuelAmount.setValue(0);
-            coffeeAmount.setValue(0);
+            String email = sharedPreferences.getString("userEmail", "");
+            String password = sharedPreferences.getString("userPassword", "");
+            User user = dbHelper.getUser(email, password);
+            if (user != null) {
+                balance.setValue(user.accountBalance);
+                fuelAmount.setValue(user.fuelAmount);
+                coffeeAmount.setValue(user.coffeeCups);
+            } else {
+                balance.setValue(0);
+                fuelAmount.setValue(0);
+                coffeeAmount.setValue(0);
+            }
         }
+    }
+
+    public void refreshData() {
+        loadUserData();
     }
 
     public LiveData<Integer> getBalance() {

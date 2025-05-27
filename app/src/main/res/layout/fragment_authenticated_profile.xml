@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_marginTop="20dp"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/background_gradient">
 
     <TextView
         android:id="@+id/user_info_authenticated"
@@ -19,10 +19,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Налаштування"
+        android:layout_gravity="center"
         android:backgroundTint="@color/white_button"
         android:textColor="#17a117"
-        android:textSize="20sp"
-        android:layout_gravity="center"
         android:layout_marginBottom="8dp"/>
 
     <Button
@@ -30,10 +29,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Про програму"
+        android:layout_gravity="center"
         android:backgroundTint="@color/white_button"
         android:textColor="#17a117"
-        android:textSize="20sp"
-        android:layout_gravity="center"
         android:layout_marginBottom="8dp"/>
 
     <Button
@@ -41,10 +39,48 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Вийти"
+        android:layout_gravity="center"
         android:backgroundTint="@color/white_button"
         android:textColor="#17a117"
-        android:textSize="20sp"
-        android:layout_gravity="center"
         android:layout_marginBottom="8dp"/>
+
+    <!-- Секція для поповнення балансу -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Поповнити баланс:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/recharge_amount_input"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:hint="Сума (₴)"
+                android:inputType="number"
+                android:minHeight="48dp" />
+
+            <Button
+                android:id="@+id/recharge_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Поповнити"
+                android:backgroundTint="@color/white_button"
+                android:textColor="#17a117"/>
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

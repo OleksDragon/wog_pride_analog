@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -37,7 +38,7 @@ public class MapFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (!isNetworkAvailable()) {
-            Log.e("MapFragment", "No internet connection");
+            Log.e("MapFragment", "Нет подключения к интернету");
             Toast.makeText(getContext(), "Немає підключення до Інтернету", Toast.LENGTH_LONG).show();
             return;
         }
@@ -53,48 +54,64 @@ public class MapFragment extends Fragment {
         webSettings.setBlockNetworkImage(false);
         webSettings.setLoadsImagesAutomatically(true);
 
+        mapWebView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+                Log.d("MapFragment", "Консоль JS: " + message + " (Строка: " + lineNumber + ")");
+            }
+        });
+
         mapWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (url.contains("openstreetmap.org") || url.startsWith("file://")) {
+                if (url.contains("openstreetmap.org") || url.startsWith("file:///android_asset/")) {
                     return false;
                 }
-                Log.e("MapFragment", "Blocked URL: " + url);
+                Log.e("MapFragment", "Заблокированный URL: " + url);
                 return true;
             }
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                Log.e("MapFragment", "WebView error: " + description + " URL: " + failingUrl);
+                Log.e("MapFragment", "Ошибка WebView: " + description + " URL: " + failingUrl);
             }
         });
 
-        String htmlContent = "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "<style>html, body, #map { height: 100%; margin: 0; }</style>" +
-                "<style>" + getAssetFileContent("leaflet.css") + "</style>" +
-                "</head>" +
-                "<body>" +
-                "<div id=\"map\"></div>" +
-                "<script>" + getAssetFileContent("leaflet.js") + "</script>" +
-                "<script>" +
-                "var map = L.map('map').setView([48.3794, 31.1656], 6);" +
-                "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {" +
-                "attribution: '© OpenStreetMap contributors'" +
-                "}).addTo(map);" +
-                "L.marker([50.4501, 30.5234]).addTo(map).bindPopup('Заправка в Києві');" +
-                "L.marker([46.4825, 30.7233]).addTo(map).bindPopup('Заправка в Одесі');" +
-                "L.marker([49.4444, 32.0597]).addTo(map).bindPopup('Заправка в Черкасах');" +
-                "L.marker([49.8397, 24.0297]).addTo(map).bindPopup('Заправка у Львові');" +
-                "L.marker([48.4647, 35.0462]).addTo(map).bindPopup('Заправка в Дніпрі');" +
-                "L.marker([49.9935, 36.2304]).addTo(map).bindPopup('Заправка в Харкові');" +
-                "</script>" +
-                "</body>" +
-                "</html>";
+        new Thread(() -> {
+            String leafletCss = getAssetFileContent("leaflet.css");
+            String leafletJs = getAssetFileContent("leaflet.js");
+            Log.d("MapFragment", "Длина Leaflet CSS: " + leafletCss.length());
+            Log.d("MapFragment", "Длина Leaflet JS: " + leafletJs.length());
 
-        mapWebView.loadDataWithBaseURL("file:///android_asset/", htmlContent, "text/html", "UTF-8", null);
+            String htmlContent = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>html, body, #map { height: 100%; margin: 0; }</style>" +
+                    "<style>" + leafletCss + "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "<div id=\"map\"></div>" +
+                    "<script>" + leafletJs + "</script>" +
+                    "<script>" +
+                    "var map = L.map('map').setView([48.3794, 31.1656], 6);" +
+                    "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {" +
+                    "attribution: '© OpenStreetMap contributors'" +
+                    "}).addTo(map);" +
+                    "L.marker([50.4501, 30.5234]).addTo(map).bindPopup('Заправка в Києві');" +
+                    "L.marker([46.4825, 30.7233]).addTo(map).bindPopup('Заправка в Одесі');" +
+                    "L.marker([49.4444, 32.0597]).addTo(map).bindPopup('Заправка в Черкасах');" +
+                    "L.marker([49.8397, 24.0297]).addTo(map).bindPopup('Заправка у Львові');" +
+                    "L.marker([48.4647, 35.0462]).addTo(map).bindPopup('Заправка в Дніпрі');" +
+                    "L.marker([49.9935, 36.2304]).addTo(map).bindPopup('Заправка в Харкові');" +
+                    "</script>" +
+                    "</body>" +
+                    "</html>";
+
+            getActivity().runOnUiThread(() -> {
+                mapWebView.loadDataWithBaseURL("file:///android_asset/", htmlContent, "text/html", "UTF-8", null);
+            });
+        }).start();
     }
 
     private String getAssetFileContent(String fileName) {
@@ -108,7 +125,7 @@ public class MapFragment extends Fragment {
             inputStream.close();
             return byteArrayOutputStream.toString("UTF-8");
         } catch (java.io.IOException e) {
-            Log.e("MapFragment", "Error reading asset file: " + fileName, e);
+            Log.e("MapFragment", "Ошибка чтения файла из assets: " + fileName, e);
             return "";
         }
     }

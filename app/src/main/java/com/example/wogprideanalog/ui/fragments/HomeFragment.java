@@ -30,7 +30,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        fuelViewModel = new ViewModelProvider(this).get(FuelViewModel.class);
+        fuelViewModel = new ViewModelProvider(requireActivity()).get(FuelViewModel.class);
         sharedPreferences = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
 
         balanceTextView = view.findViewById(R.id.balance_text_view);
@@ -47,19 +47,17 @@ public class HomeFragment extends Fragment {
         });
 
         fuelViewModel.getFuelAmount().observe(getViewLifecycleOwner(), fuel -> {
-            fuelIndicator.setText(fuel != null ? fuel + " л" : "0.0 л");
+            fuelIndicator.setText(fuel != null ? fuel + " л" : "0 л");
         });
 
         fuelViewModel.getCoffeeAmount().observe(getViewLifecycleOwner(), coffee -> {
             coffeeIndicator.setText(coffee != null ? coffee + " чашок" : "0 чашок");
         });
 
-        // Генерація QR-коду
         String cardId = sharedPreferences.getString("userEmail", "USER123");
         Bitmap qrCode = QrCodeGenerator.generateQrCode(cardId);
         if (qrCode != null) {
             qrCodeImageView.setImageBitmap(qrCode);
-
             qrCodeImageView.setOnClickListener(v -> {
                 QrInfoDialogFragment dialog = QrInfoDialogFragment.newInstance(qrCode);
                 dialog.show(getParentFragmentManager(), "qr_info_dialog");

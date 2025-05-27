@@ -7,11 +7,11 @@ public class User {
     public int accountBalance;
     public int coffeeCups;
 
-    public User(String email, String password, int fuelAmount, int accountBalance, int coffeeCups) {
+    public User(String email, String password, int accountBalance, int fuelAmount, int coffeeCups) {
         this.email = email;
         this.password = password;
-        this.fuelAmount = fuelAmount;
         this.accountBalance = accountBalance;
+        this.fuelAmount = fuelAmount;
         this.coffeeCups = coffeeCups;
     }
 }
