@@ -70,7 +70,7 @@ public class AuthenticatedProfileFragment extends Fragment {
 
     private void updateUserInfo(User user) {
         String info = String.format("Email: %s\nПаливо: %d л\nРахунок: %d ₴\nКава: %d чашок",
-                user.email, user.fuelAmount, user.accountBalance, user.coffeeCups);
+                user.email, user.getTotalFuelLiters(), user.accountBalance, user.getTotalCoffeeCups());
         userInfoText.setText(info);
     }
 

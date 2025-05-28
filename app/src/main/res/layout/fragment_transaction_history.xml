@@ -34,7 +34,8 @@
         android:contentDescription="Back Button"
         android:padding="8dp"
         android:src="@drawable/ic_back"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
         android:layout_gravity="center"/>
 
 </LinearLayout>

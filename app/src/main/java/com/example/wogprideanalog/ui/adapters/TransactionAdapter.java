@@ -1,4 +1,4 @@
-package com.example.wogprideanalog.ui.fragments;
+package com.example.wogprideanalog.ui.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

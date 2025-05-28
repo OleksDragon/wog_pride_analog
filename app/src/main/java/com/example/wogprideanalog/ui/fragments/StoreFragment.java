@@ -176,7 +176,7 @@ public class StoreFragment extends Fragment {
         }
 
         user.accountBalance -= totalCost;
-        user.fuelAmount += quantity;
+        user.addFuel(fuelType, quantity);
 
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                 .format(new Date());
@@ -186,6 +186,7 @@ public class StoreFragment extends Fragment {
         updateUserInDatabase(user);
         fuelViewModel.refreshData();
         Toast.makeText(getContext(), "Куплено " + quantity + " л " + fuelType + " за " + totalCost + " ₴", Toast.LENGTH_SHORT).show();
+        fuelQuantityInput.setText("");
     }
 
     private void buyCoffee() {
@@ -225,7 +226,7 @@ public class StoreFragment extends Fragment {
         }
 
         user.accountBalance -= totalCost;
-        user.coffeeCups += quantity;
+        user.addCoffee(coffeeType, quantity);
 
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                 .format(new Date());
@@ -235,6 +236,7 @@ public class StoreFragment extends Fragment {
         updateUserInDatabase(user);
         fuelViewModel.refreshData();
         Toast.makeText(getContext(), "Куплено " + quantity + " чашок " + coffeeType + " за " + totalCost + " ₴", Toast.LENGTH_SHORT).show();
+        coffeeQuantityInput.setText("");
     }
 
     private void updateUserInDatabase(User user) {

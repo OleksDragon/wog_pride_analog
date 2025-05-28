@@ -39,6 +39,9 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         fuelViewModel = new ViewModelProvider(requireActivity()).get(FuelViewModel.class);
+        fuelViewModel.setContext(requireContext());
+        fuelViewModel.refreshData();
+
         sharedPreferences = requireContext().getSharedPreferences("UserPrefs", MODE_PRIVATE);
 
         balanceTextView = view.findViewById(R.id.balance_text_view);
@@ -46,6 +49,8 @@ public class HomeFragment extends Fragment {
         coffeeIndicator = view.findViewById(R.id.coffee_indicator);
         qrCodeImageView = view.findViewById(R.id.qr_code_image_view);
         ImageButton walletButton = view.findViewById(R.id.wallet_button);
+        ImageButton fuelButton = view.findViewById(R.id.fuel_button);
+        ImageButton coffeeButton = view.findViewById(R.id.coffee_button);
 
         viewPager = requireActivity().findViewById(R.id.view_pager);
 
@@ -88,7 +93,35 @@ public class HomeFragment extends Fragment {
             TransactionHistoryFragment transactionHistoryFragment = new TransactionHistoryFragment();
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.overlay_fragment_container, transactionHistoryFragment);
-            transaction.addToBackStack(null); // Добавляем в стек, чтобы можно было вернуться назад
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
+        coffeeButton.setOnClickListener(v -> {
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            if (!isLoggedIn) {
+                Toast.makeText(getContext(), "Будь ласка, увійдіть, щоб переглянути інформацію про каву", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Log.d("HomeFragment", "Відкриваємо CoffeeInfoFragment");
+            CoffeeInfoFragment coffeeInfoFragment = new CoffeeInfoFragment();
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.overlay_fragment_container, coffeeInfoFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
+        fuelButton.setOnClickListener(v -> {
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            if (!isLoggedIn) {
+                Toast.makeText(getContext(), "Будь ласка, увійдіть, щоб переглянути інформацію про паливо", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Log.d("HomeFragment", "Відкриваємо FuelInfoFragment");
+            FuelInfoFragment fuelInfoFragment = new FuelInfoFragment();
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.overlay_fragment_container, fuelInfoFragment);
+            transaction.addToBackStack(null);
             transaction.commit();
         });
 

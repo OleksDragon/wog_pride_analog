@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.wogprideanalog.R;
 import com.example.wogprideanalog.data.DatabaseHelper;
 import com.example.wogprideanalog.data.model.Transaction;
+import com.example.wogprideanalog.ui.adapters.TransactionAdapter;
 
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class TransactionHistoryFragment extends Fragment {
         transactionsRecyclerView.setAdapter(adapter);
 
         backButton.setOnClickListener(v -> {
-            requireActivity().getSupportFragmentManager().popBackStack(); // Возвращаемся назад
+            requireActivity().getSupportFragmentManager().popBackStack();
         });
 
         return view;
