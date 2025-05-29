@@ -210,7 +210,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Топливо"
+                    android:text="Паливо"
                     android:textColor="#000000"
                     android:textSize="12sp"
                     android:layout_marginTop="6dp" />
@@ -342,6 +342,7 @@
             android:layout_marginTop="20dp">
 
             <LinearLayout
+                android:id="@+id/fuel_prices_button"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
@@ -360,7 +361,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Ціни на топливо"
+                    android:text="Ціни на паливо"
                     android:textSize="14sp"
                     android:textColor="#000000"/>
             </LinearLayout>

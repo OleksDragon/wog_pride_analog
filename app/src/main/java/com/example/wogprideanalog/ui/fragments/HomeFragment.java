@@ -1,5 +1,6 @@
 package com.example.wogprideanalog.ui.fragments;
 
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,10 +22,15 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.wogprideanalog.R;
+import com.example.wogprideanalog.data.DatabaseHelper;
+import com.example.wogprideanalog.data.StoreConfig;
 import com.example.wogprideanalog.ui.viewmodel.FuelViewModel;
 import com.example.wogprideanalog.utils.QrCodeGenerator;
 
 import static android.content.Context.MODE_PRIVATE;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 public class HomeFragment extends Fragment {
 
@@ -32,11 +39,15 @@ public class HomeFragment extends Fragment {
     private TextView balanceTextView, fuelIndicator, coffeeIndicator;
     private SharedPreferences sharedPreferences;
     private ViewPager2 viewPager;
+    private LinearLayout fuelPricesButton;
+    private DatabaseHelper dbHelper;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        dbHelper = new DatabaseHelper(requireContext());
 
         fuelViewModel = new ViewModelProvider(requireActivity()).get(FuelViewModel.class);
         fuelViewModel.setContext(requireContext());
@@ -51,6 +62,7 @@ public class HomeFragment extends Fragment {
         ImageButton walletButton = view.findViewById(R.id.wallet_button);
         ImageButton fuelButton = view.findViewById(R.id.fuel_button);
         ImageButton coffeeButton = view.findViewById(R.id.coffee_button);
+        fuelPricesButton = view.findViewById(R.id.fuel_prices_button);
 
         viewPager = requireActivity().findViewById(R.id.view_pager);
 
@@ -123,6 +135,29 @@ public class HomeFragment extends Fragment {
             transaction.replace(R.id.overlay_fragment_container, fuelInfoFragment);
             transaction.addToBackStack(null);
             transaction.commit();
+        });
+
+        fuelPricesButton.setOnClickListener(v -> {
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            if (!isLoggedIn) {
+                Toast.makeText(getContext(), "Будь ласка, увійдіть, щоб переглянути ціни на паливо", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Map<String, StoreConfig.Item> fuelItems = dbHelper.getFuelItems();
+            ArrayList<String> fuelPricesList = new ArrayList<>();
+            for (Map.Entry<String, StoreConfig.Item> entry : fuelItems.entrySet()) {
+                fuelPricesList.add(entry.getKey() + ": " + entry.getValue().getPrice() + " ₴/л");
+            }
+            String[] fuelPrices = fuelPricesList.toArray(new String[0]);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle("Ціни на паливо");
+            builder.setItems(fuelPrices, (dialog, which) -> {
+                Toast.makeText(getContext(), "Ви обрали: " + fuelPrices[which], Toast.LENGTH_SHORT).show();
+            });
+            builder.setNegativeButton("Закрити", (dialog, which) -> dialog.dismiss());
+            builder.show();
         });
 
         return view;

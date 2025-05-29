@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "WogPride.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     public static final String TABLE_USERS = "users";
     private static final String TABLE_ITEMS = "items";
     private static final String TABLE_TRANSACTIONS = "transactions";
@@ -30,6 +30,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_COFFEE_ESPRESSO = "coffee_espresso";
     private static final String COLUMN_COFFEE_LATTE = "coffee_latte";
     private static final String COLUMN_COFFEE_AMERICANO = "coffee_americano";
+    private static final String COLUMN_EXTRA_FUEL = "extra_fuel";
+    private static final String COLUMN_EXTRA_COFFEE = "extra_coffee";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_CATEGORY = "category";
@@ -48,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createUsersTable = "CREATE TABLE " + TABLE_USERS + " (" +
@@ -59,7 +62,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_FUEL_DIESEL + " INTEGER DEFAULT 0, " +
                 COLUMN_COFFEE_ESPRESSO + " INTEGER DEFAULT 0, " +
                 COLUMN_COFFEE_LATTE + " INTEGER DEFAULT 0, " +
-                COLUMN_COFFEE_AMERICANO + " INTEGER DEFAULT 0)";
+                COLUMN_COFFEE_AMERICANO + " INTEGER DEFAULT 0, " +
+                COLUMN_EXTRA_FUEL + " TEXT DEFAULT '{}', " +
+                COLUMN_EXTRA_COFFEE + " TEXT DEFAULT '{}'" +
+                ")";
         db.execSQL(createUsersTable);
 
         String createItemsTable = "CREATE TABLE " + TABLE_ITEMS + " (" +
@@ -117,7 +123,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     int oldFuelAmount = cursor.getInt(cursor.getColumnIndexOrThrow("fuelAmount"));
                     int oldCoffeeCups = cursor.getInt(cursor.getColumnIndexOrThrow("coffeeCups"));
 
-                    // Создаем нового пользователя
                     User user = new User(
                             cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)),
                             cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD)),
@@ -132,6 +137,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS + "_temp");
+        }
+        if (oldVersion < 5) {
+            db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COLUMN_EXTRA_FUEL + " TEXT DEFAULT '{}'");
+            db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COLUMN_EXTRA_COFFEE + " TEXT DEFAULT '{}'");
         }
     }
 
@@ -150,6 +159,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_PRICE, price);
         db.insert(TABLE_ITEMS, null, values);
+    }
+
+    // Функция для добавления или обновления товара
+    public void updateOrAddItem(String category, String name, int price) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_ITEMS,
+                new String[]{COLUMN_ID},
+                COLUMN_CATEGORY + "=? AND " + COLUMN_NAME + "=?",
+                new String[]{category, name},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_PRICE, price);
+            db.update(
+                    TABLE_ITEMS,
+                    values,
+                    COLUMN_CATEGORY + "=? AND " + COLUMN_NAME + "=?",
+                    new String[]{category, name}
+            );
+            cursor.close();
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_CATEGORY, category);
+            values.put(COLUMN_NAME, name);
+            values.put(COLUMN_PRICE, price);
+            db.insert(TABLE_ITEMS, null, values);
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
     }
 
     public void addItem(String category, String name, int price) {
@@ -198,7 +245,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(TABLE_USERS, new String[]{
                 COLUMN_EMAIL, COLUMN_PASSWORD, COLUMN_BALANCE,
                 COLUMN_FUEL_A95, COLUMN_FUEL_A92, COLUMN_FUEL_DIESEL,
-                COLUMN_COFFEE_ESPRESSO, COLUMN_COFFEE_LATTE, COLUMN_COFFEE_AMERICANO
+                COLUMN_COFFEE_ESPRESSO, COLUMN_COFFEE_LATTE, COLUMN_COFFEE_AMERICANO,
+                COLUMN_EXTRA_FUEL, COLUMN_EXTRA_COFFEE
         }, COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?", new String[]{email, password}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             user = new User(
@@ -213,6 +261,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             user.coffeeCupsByCategory.put("Еспресо", cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COFFEE_ESPRESSO)));
             user.coffeeCupsByCategory.put("Лате", cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COFFEE_LATTE)));
             user.coffeeCupsByCategory.put("Americano", cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COFFEE_AMERICANO)));
+            user.setExtraFuelFromJson(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EXTRA_FUEL)));
+            user.setExtraCoffeeFromJson(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EXTRA_COFFEE)));
         }
         if (cursor != null) {
             cursor.close();
@@ -232,6 +282,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_COFFEE_ESPRESSO, user.coffeeCupsByCategory.getOrDefault("Еспресо", 0));
         values.put(COLUMN_COFFEE_LATTE, user.coffeeCupsByCategory.getOrDefault("Лате", 0));
         values.put(COLUMN_COFFEE_AMERICANO, user.coffeeCupsByCategory.getOrDefault("Americano", 0));
+        values.put(COLUMN_EXTRA_FUEL, user.getExtraFuelJson());
+        values.put(COLUMN_EXTRA_COFFEE, user.getExtraCoffeeJson());
 
         long id = db.insert(TABLE_USERS, null, values);
         db.close();
@@ -248,6 +300,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_COFFEE_ESPRESSO, user.coffeeCupsByCategory.getOrDefault("Еспресо", 0));
         values.put(COLUMN_COFFEE_LATTE, user.coffeeCupsByCategory.getOrDefault("Лате", 0));
         values.put(COLUMN_COFFEE_AMERICANO, user.coffeeCupsByCategory.getOrDefault("Americano", 0));
+        values.put(COLUMN_EXTRA_FUEL, user.getExtraFuelJson());
+        values.put(COLUMN_EXTRA_COFFEE, user.getExtraCoffeeJson());
 
         int rowsAffected = db.update(TABLE_USERS, values, COLUMN_EMAIL + " = ? AND " + COLUMN_PASSWORD + " = ?",
                 new String[]{user.email, user.password});
